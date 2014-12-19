@@ -8,16 +8,6 @@ It can detect and load compatible Aerospike C client libraries automatically.
 Includes a tool named ```aerospike-cli```, inspired by ```redis-cli```, that can provide a REPL-like interface to an Aerospike cluster.
 
 
-Development Log
------
-
-We need to move the event loop management to C. This is so we can remove the Python thread dedicated to the event loop and consequently adding/removing items. However, being able to call functions generically in C is a royal pain in the ${object}.
-
-So we're going to use libffi and let Python create the appropriate ffi interfaces and associate them to the function pointers we need. By doing that, we can then pass into the C boundary the function pointer, an encoded vector of pointers to the values in question and the ffi_cdef pointer.
-
-This reduces the dispatch function into the lockfree queue to the bare minimum, which is nice because C is complex.
-
-
 Status
 -----
 
