@@ -49,5 +49,5 @@ def detect_aerospike_libraries(aerospike_version=None):
         if library_version & aerospike_version:
             for lib in potential_libraries:
                 if lib.shared_object.find_library() and \
-                        all([name.find_library() for name in lib.dependencies]):
+                        all(name.find_library() for name in lib.dependencies):
                     yield library_version, lib

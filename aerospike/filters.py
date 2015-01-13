@@ -38,7 +38,7 @@ def convert_float_double(bin, ffi):
 
 EXTRACT_METHODS = {
     CL_NULL: lambda x, ffi: None,
-    CL_INT: lambda x, ffi: int(x.object.u.i64[0]),
+    CL_INT: lambda x, ffi: x.object.u.i64,
     CL_FLOAT: convert_float_double,
     CL_STR: convert_to_str,
     CL_TIMESTAMP: convert_to_str,

@@ -258,7 +258,8 @@ class AS2KeyOperations(KeyOperations):
                 raise ValueError(
                     "Unsupported type {0} for value of key {1}".format(
                         type(value), key))
-        write_parameters_ptr = self._checkout_write_parameters(write_parameters)
+        write_parameters_ptr = \
+            self._checkout_write_parameters(write_parameters)
         cuid = self._async_checkin(
             callback,
             (key_identifier, query_ptr, namespace, keyset, bins,
