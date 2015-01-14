@@ -148,19 +148,12 @@ class AS2KeyOperations(KeyOperations):
             int: self.ev2citrusleaf_object_init_int,
             bytes: self.ev2citrusleaf_object_dup_str,
             type(None): lambda obj, value: self.ev2citrusleaf_object_init(obj),
-            float: self._encode_float_to_bin
         }
         try:
             self.bin_init_funcs[long] = self.bin_init_funcs[int]
         except NameError:
             # Clearly Python 3...
             pass
-
-    def _encode_float_to_bin(self, ev2citrusleaf_object, value):
-        ev2citrusleaf_object.type = filters.CL_FLOAT
-        ev2citrusleaf_object.size = 8
-        ev2citrusleaf_object.u.i64 = struct.unpack(
-            '<Q', struct.pack('<d', value))[0]
 
     def select_key(self, callback, namespace, keyset, key_identifier,
                    timeout_ms=DEFAULT_TIMEOUT_MS, *named_bins_to_return):
