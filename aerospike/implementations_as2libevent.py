@@ -25,19 +25,6 @@ from .logger import logger
 import six
 from six.moves import range as xrange
 
-
-def coerce_bytes_py2(iterable):
-    return bytes(bytearray(iterable))
-
-
-def coerce_bytes_py3(iterable):
-    return bytes(iterable)
-
-if six.PY2:
-    coerce_bytes = coerce_bytes_py2
-elif six.PY3:
-    coerce_bytes = coerce_bytes_py3
-
 VERSION = (constants.AEROSPIKE_2, constants.NONBLOCKING)
 CHECKIN_OBJ_FAILURE = \
     "Object checked into {0} pool is not correct type!"
@@ -286,7 +273,8 @@ class AS2KeyOperations(KeyOperations):
         # key_ptr = self._checkout_ev2citrusleaf_obj()
         # self.ev2citrusleaf_object_dup_str(key_ptr, key_identifier)
         # Why not? Because it fails to recognize keys can be ints, etcs
-        write_parameters_ptr = self._checkout_write_parameters(write_parameters)
+        write_parameters_ptr = \
+            self._checkout_write_parameters(write_parameters)
 
         cuid = self._async_checkin(
             callback, (key_identifier, key_ptr,
@@ -294,7 +282,8 @@ class AS2KeyOperations(KeyOperations):
         self._submit_work(
             self.ev2citrusleaf_delete,
             self._cluster, namespace, keyset, key_ptr,
-            write_parameters_ptr, timeout_ms, self._handle_event_callback, cuid,
+            write_parameters_ptr, timeout_ms,
+            self._handle_event_callback, cuid,
             self._event_loop)
 
 
