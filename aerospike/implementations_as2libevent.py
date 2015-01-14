@@ -161,7 +161,7 @@ class AS2KeyOperations(KeyOperations):
             namespace = namespace.encode('utf8')
         if not isinstance(keyset, six.binary_type):
             keyset = keyset.encode('utf8')
-        key_container, key_identifier = self._prepare_key(key_identifier)
+        key_container = self._prepare_key(key_identifier)
 
         num_bins = len(named_bins_to_return)
         bins_ptr = self.ffi.new('char *', num_bins)
@@ -171,8 +171,7 @@ class AS2KeyOperations(KeyOperations):
             bins_ptr[index] = named_bin_ptr
 
         cuid = self._async_checkin(
-            callback, [key_identifier,
-                       key_container, namespace, keyset, bins_items, bins_ptr])
+            callback, [key_container, bins_items, bins_ptr])
         self._submit_work(
             self.ev2citrusleaf_get,
             self._cluster, namespace, keyset, key_container,
@@ -189,16 +188,14 @@ class AS2KeyOperations(KeyOperations):
         if not isinstance(keyset, bytes):
             keyset = keyset.encode('utf8')
         # Get me an ev2citrusleaf_object pointer
-        query_ptr, key_identifier = self._prepare_key(key_identifier)
+        query_ptr = self._prepare_key(key_identifier)
         # Get me a uniq id and signal we want to hold
         # the query_ptr (avoid a GC)
         # Question:
-        # 1. Since we strcopy the key_identifier into the
+        # 1. Since we strcopy the encoded_key_pair into the
         #    ev2citrusleaf_object, can we let it be gc'ed?
-        # 2. Are namespace and keyset needed to be preserved
-        #    from a GC?
         cuid = self._async_checkin(
-            callback, [query_ptr, namespace, keyset, key_identifier])
+            callback, [query_ptr])
         # Send the work off to the event loop.
         self._submit_work(
             self.ev2citrusleaf_get_all,
@@ -216,7 +213,7 @@ class AS2KeyOperations(KeyOperations):
         if not bin_names_to_values:
             raise ValueError("No bins detected!")
 
-        query_ptr, key_identifier = self._prepare_key(key_identifier)
+        query_ptr = self._prepare_key(key_identifier)
 
         num_bins = len(bin_names_to_values)
         bins = self.ffi.new('ev2citrusleaf_bin[]', num_bins)
@@ -256,8 +253,8 @@ class AS2KeyOperations(KeyOperations):
             self._checkout_write_parameters(write_parameters)
         cuid = self._async_checkin(
             callback,
-            (key_identifier, query_ptr, namespace, keyset, bins,
-             write_parameters_ptr, bin_names_to_values))
+            (query_ptr, bins,
+             write_parameters_ptr,))
         self._submit_work(
             self.ev2citrusleaf_put,
             self._cluster, namespace, keyset, query_ptr,
@@ -273,7 +270,7 @@ class AS2KeyOperations(KeyOperations):
             keyset = keyset.encode('utf8')
         # Use the _prepare_key function to coerce key_identifier to
         # a container!
-        key_ptr, key_identifier = \
+        key_ptr = \
             self._prepare_key(key_identifier)
         # Below:
         # This is an example of WHAT NOT to do:
@@ -284,8 +281,8 @@ class AS2KeyOperations(KeyOperations):
             self._checkout_write_parameters(write_parameters)
 
         cuid = self._async_checkin(
-            callback, (key_identifier, key_ptr,
-                       write_parameters_ptr, namespace, keyset,))
+            callback, (key_ptr,
+                       write_parameters_ptr,))
         self._submit_work(
             self.ev2citrusleaf_delete,
             self._cluster, namespace, keyset, key_ptr,
@@ -380,27 +377,22 @@ class AS2Base(Base):
             - Generic blobs (WHY ARENT YOU USING A STRING?!?!)
         '''
         key_container = self._checkout_ev2citrusleaf_obj()
-        ckey_name = None
         if isinstance(keyname, six.integer_types):
-            # ckey_name = self.ffi.new('int64_t *', )
             self.ev2citrusleaf_object_init_int(key_container, keyname)
         # Python 2 strs succeed here
         # Python 3 bytes succeed here
         elif isinstance(keyname, six.binary_type):
-            ckey_name = self.ffi.new('char []', keyname)
-            self.ev2citrusleaf_object_init_str2(
-                key_container, ckey_name, len(keyname))
-        # Python 3 strs and Python 2 uncodes succeed here
+            self.ev2citrusleaf_object_dup_str(
+                key_container, keyname)
+        # Python 3 strs and Python 2 unicodes succeed here
         elif isinstance(keyname, six.string_types):
-            keyname = keyname.encode('utf8')
-            ckey_name = self.ffi.new('char []', keyname)
-            self.ev2citrusleaf_object_init_str2(
-                key_container, ckey_name, len(keyname))
+            self.ev2citrusleaf_object_dup_str(
+                key_container, keyname.encode('utf8'))
         else:
             raise ValueError(
                 ("Unsupported key type! "
                  "Must be a numeric, unicode string or bytes!"))
-        return key_container, (keyname, ckey_name)
+        return key_container
 
     def _generate_empty_citrusleaf_write_parameters(self):
         obj = self.ffi.new('ev2citrusleaf_write_parameters *')
@@ -537,7 +529,7 @@ class AS2DigestOperations(DigestOperations):
 
         cuid = self._async_checkin(
             callback,
-            [digest_container, namespace, digest])
+            [digest_container, digest])
 
         self._submit_work(
             self.ev2citrusleaf_get_all_digest,
@@ -551,7 +543,7 @@ class AS2DigestOperations(DigestOperations):
         '''
         if not isinstance(keyset, six.binary_type):
             keyset = keyset.encode('utf8')
-        key_container, keyname = self._prepare_key(keyname)
+        key_container = self._prepare_key(keyname)
         digest_container = self._checkout_digest_container()
         try:
             if (self.ev2citrusleaf_calculate_digest(
@@ -578,7 +570,7 @@ class AS2DigestOperations(DigestOperations):
             self._checkout_digest_container())
         write_params = self._checkout_write_parameters(write_parameters)
         cuid = self._async_checkin(
-            callback, [digest_container, namespace, write_params])
+            callback, [digest_container, write_params])
         self._submit_work(
             self.ev2citrusleaf_delete_digest,
             self._cluster, namespace, digest_container,
