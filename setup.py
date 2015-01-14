@@ -71,7 +71,10 @@ setup(
 
     # List run-time dependencies here. These will be installed by pip when your
     # project is installed.
-    setup_requires=['cffi', 'six'],
+    # Due to bug https://bitbucket.org/pypa/setuptools/issue/209,
+    # We cannot install cffi, six before using. Fine. We'll have to
+    # detect libraries rudely.
+    # setup_requires=['cffi', 'six'],
     install_requires=['cffi', 'six'],
     package_dir={'aerospike': 'aerospike'},
     package_data={'aerospike': ['*.h']},

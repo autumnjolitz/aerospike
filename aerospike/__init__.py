@@ -5,7 +5,10 @@ try:
 except ImportError:
     load_library = None
 import inspect
-import six
+try:
+    import six
+except ImportError:
+    six = None
 from .constants import DEFAULT_OBJECT_POOL_SIZE, DEFAULT_INITIAL_POOL_SIZE
 from .logger import logger
 import types
@@ -40,6 +43,8 @@ def get_client(
     initial_size = initial_size or 0
     if initial_size and initial_size < 0:
         initial_size = 0
+    if not six:
+        raise ImportError("six not installed, broken package?")
     cls = load_library()
     instance = cls(
         initial_object_pool_size=initial_size,
