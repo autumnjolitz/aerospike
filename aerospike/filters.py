@@ -28,9 +28,9 @@ void_ptr = \
 def convert_float_double(bin, ffi):
     size = int(bin.object.size[0])
     if size == 4:
-        return ffi.cast('float *', bin.object.blob)
+        return ffi.cast('float *', bin.object.blob)[0]
     if size == 8:
-        return ffi.cast('double *', bin.object.blob)
+        return ffi.cast('double *', bin.object.blob)[0]
     raise ValueError(
         "Unrecognized size {0} bytes for casting to datatype!".format(
             size))

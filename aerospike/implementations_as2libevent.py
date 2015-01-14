@@ -23,6 +23,7 @@ from . import filters
 from . import error_codes
 from .logger import logger
 import six
+import struct
 from six.moves import range as xrange
 
 VERSION = (constants.AEROSPIKE_2, constants.NONBLOCKING)
@@ -146,8 +147,20 @@ class AS2KeyOperations(KeyOperations):
         self.bin_init_funcs = {
             int: self.ev2citrusleaf_object_init_int,
             bytes: self.ev2citrusleaf_object_dup_str,
-            type(None): lambda obj, value: self.ev2citrusleaf_object_init(obj)
+            type(None): lambda obj, value: self.ev2citrusleaf_object_init(obj),
+            float: self._encode_float_to_bin
         }
+        try:
+            self.bin_init_funcs[long] = self.bin_init_funcs[int]
+        except NameError:
+            # Clearly Python 3...
+            pass
+
+    def _encode_float_to_bin(self, ev2citrusleaf_object, value):
+        ev2citrusleaf_object.type = filters.CL_FLOAT
+        ev2citrusleaf_object.size = 8
+        ev2citrusleaf_object.u.i64 = struct.unpack(
+            '<Q', struct.pack('<d', value))[0]
 
     def select_key(self, callback, namespace, keyset, key_identifier,
                    timeout_ms=DEFAULT_TIMEOUT_MS, *named_bins_to_return):
@@ -209,9 +222,10 @@ class AS2KeyOperations(KeyOperations):
             keyset = keyset.encode('utf8')
         if not bin_names_to_values:
             raise ValueError("No bins detected!")
+
         query_ptr, key_identifier = self._prepare_key(key_identifier)
 
-        num_bins = len(bin_names_to_values.keys())
+        num_bins = len(bin_names_to_values)
         bins = self.ffi.new('ev2citrusleaf_bin[]', num_bins)
         size_of_bin_name = self.ffi.sizeof(bins[0].bin_name) - 1
         for index, (key, value) in enumerate(bin_names_to_values.items()):
