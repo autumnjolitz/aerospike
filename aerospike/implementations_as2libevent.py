@@ -158,7 +158,7 @@ class AS2KeyOperations(KeyOperations):
         # prepare callback handlers
         self.bin_init_funcs = {
             int: self.ev2citrusleaf_object_init_int,
-            bytes: self.ev2citrusleaf_object_init_str,
+            bytes: self.ev2citrusleaf_object_dup_str,
             type(None): lambda obj, value: self.ev2citrusleaf_object_init(obj)
         }
 
