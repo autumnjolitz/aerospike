@@ -57,7 +57,7 @@ class RawLibrary(object):
                     try:
                         func = getattr(library, func_name)
                     except AttributeError:
-                        logger.warn(
+                        logger.warning(
                             MESSAGES['disabled_function'].format(
                                 dependency.shared_object.find_library(),
                                 ', '.join(
@@ -107,12 +107,12 @@ def rearrange_args_for_tornado(function):
                 argspec.keywords,
                 (argspec.defaults or ()) + (None,)),
             inspect.formatargspec(*original_args))
-    make_fn = None
     func_maker_body = \
         ("def make_fn(function):\n    {0}\n    "
          "return functools.wraps(function)(wrapped)").format(func_def)
-    exec(func_maker_body)
-    wrapped_func = make_fn(function)
+    namespace = {'functools': functools}
+    exec(func_maker_body, namespace)
+    wrapped_func = namespace['make_fn'](function)
     return wrapped_func
 
 

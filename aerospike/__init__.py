@@ -84,4 +84,3 @@ def setup_cli():
         client.shutdown()
     except StateError:
         pass
-
