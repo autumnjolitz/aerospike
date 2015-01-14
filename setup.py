@@ -84,7 +84,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'aerospike-cli=aerospike:tools:setup_cli'
+            'aerospike-cli=aerospike:setup_cli'
         ],
     },
 )

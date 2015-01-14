@@ -12,6 +12,7 @@ except ImportError:
 from .constants import DEFAULT_OBJECT_POOL_SIZE, DEFAULT_INITIAL_POOL_SIZE
 from .logger import logger
 import types
+from .cli import gather_cli_options, interpreter
 
 
 def get_client(
@@ -67,3 +68,20 @@ def get_client(
 
 def get_logger():
     return logger
+
+
+def setup_cli():
+    from aerospike.common import StateError
+    """Entry point for the application script"""
+    options = gather_cli_options()
+    client = get_client()
+    print("Connecting to {0}:{1} for initial cluster discovery...".format(
+        options['host'], options['port']))
+    client.add_host(options['host'], options['port'])
+    interpreter(client)
+
+    try:
+        client.shutdown()
+    except StateError:
+        pass
+
