@@ -30,11 +30,11 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/benjolitz/aerospike',
+    url='https://github.com/autumnjolitz/aerospike',
 
     # Author details
-    author='Ben Jolitz',
-    author_email='ben.jolitz@gmail.com',
+    author='Autumn Jolitz',
+    author_email='autumn.jolitz@gmail.com',
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
